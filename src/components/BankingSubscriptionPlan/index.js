@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
 import AppBar from 'material-ui/AppBar';
 import { Card } from 'material-ui/Card';
 import FlatButton from 'material-ui/FlatButton';
@@ -121,10 +122,10 @@ class BankingSubscriptionPlan extends React.PureComponent {
     }
 
     goToLoads() {
-        const { bankingInfo } = this.props;
+        const { history, bankingInfo } = this.props;
         const fundingSource = bankingInfo ? head(bankingInfo) : '';
         const businessId = fundingSource.business.businessId;
-        this.context.router.push(`/loads?businessId=${businessId}`);
+        history.push(`/loads?businessId=${businessId}`);
     }
 
     render() {
@@ -378,4 +379,4 @@ const mapStateToProps = createStructuredSelector({
 export default connect(mapStateToProps)(reduxForm({
     form: 'BankingSubscriptionPlan',
     validate,
-})(BankingSubscriptionPlan));
+})(withRouter(BankingSubscriptionPlan)));

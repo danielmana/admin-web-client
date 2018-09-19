@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
 import { Field, reduxForm } from 'redux-form/immutable';
 import { connect } from 'react-redux';
 import { Card } from 'material-ui/Card';
@@ -109,8 +110,8 @@ class UserInformation extends React.PureComponent {
     }
 
     goToEnrollments() {
-        const { businessInfo } = this.props;
-        this.context.router.push(`/enrollments?userEmail=${businessInfo.ownerEmail}`);
+        const { history, businessInfo } = this.props;
+        history.push(`/enrollments?userEmail=${businessInfo.ownerEmail}`);
     }
 
     render() {
@@ -314,4 +315,4 @@ const mapStateToProps = createStructuredSelector({
 export default connect(mapStateToProps)(reduxForm({
     form: 'UserInformation',
     validate,
-})(UserInformation));
+})(withRouter(UserInformation)));

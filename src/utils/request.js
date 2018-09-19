@@ -1,46 +1,80 @@
 import 'whatwg-fetch';
+import defaultsDeep from 'lodash/defaultsDeep';
+import set from 'lodash/set';
+
+import storage from 'utils/storage';
 
 /**
- * Parses the JSON returned by a network request
+ * Through error if necessary or return response
  *
- * @param  {object} response A response from a network request
+ * @param  {object} response A handled responsed from a network request
  *
- * @return {object}          The parsed JSON from the request
+ * @return {object|undefined} A handled responsed from a network request
  */
-function parseJSON(response) {
-  if (response.status === 204 || response.status === 205) {
-    return null;
+function handleIfErrors(response) {
+  if (response === null || (response && !response.throwError)) {
+    return response;
   }
-  return response.json();
+  throw response;
 }
 
 /**
- * Checks if a network request came back fine, and throws an error if not
- *
+ * Resolves the appropriate value from the network reponse
+ *§
  * @param  {object} response   A response from a network request
  *
- * @return {object|undefined} Returns either the response, or throws an error
+ * @return {promise} Returns promise that should resolve into the response json or the response itself
  */
-function checkStatus(response) {
-  if (response.status >= 200 && response.status < 300) {
-    return response;
+function handleResponse(response) {
+  if (response.status === 401) {
+    // logout and redirect on 401 errors
+    storage.removeUser();
+    window.location.reload();
+    return;
   }
-
-  const error = new Error(response.statusText);
-  error.response = response;
-  throw error;
+  return new Promise((resolve) => {
+    if (response.status >= 200 && response.status < 300) {
+      const header = response.headers.get('Authorization');
+      if (header) {
+        storage.setUser(header);
+      }
+      response.json().then((json) => resolve(json));
+    } else if (response.bodyUsed) {
+      response.json().then((json) => {
+        Object.assign(json, { throwError: true });
+        resolve(json);
+      });
+    } else {
+      Object.assign(response, { throwError: true });
+      resolve(response);
+    }
+  });
 }
 
 /**
  * Requests a URL, returning a promise
  *
- * @param  {string} url       The URL we want to request
+ * @param  {string} endpoint  The endpoint we want to request
  * @param  {object} [options] The options we want to pass to "fetch"
  *
  * @return {object}           The response data
  */
-export default function request(url, options) {
-  return fetch(url, options)
-    .then(checkStatus)
-    .then(parseJSON);
+export default function request(endpoint, options) {
+  const url = `${process.env.REACT_APP_API_BASE_PATH}${endpoint}`;
+  const currentUser = storage.getUser();
+
+  const defaults = {
+    headers: {
+      Authorization: currentUser || '',
+    },
+  };
+
+  // use json for put/post
+  if (options && options.body && /put|post/i.test(options.method) && !/\/documents$/.test(endpoint)) {
+    set(options, 'body', JSON.stringify(options.body));
+  }
+
+  return fetch(url, defaultsDeep({}, options, defaults))
+    .then(handleResponse)
+    .then(handleIfErrors);
 }

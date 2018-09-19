@@ -9,9 +9,6 @@ import FontIcon from 'material-ui/FontIcon';
 import DialogUploadDocument from 'containers/EnrollmentPageDetail/DialogUploadDocument/index';
 import map from 'lodash/map';
 
-import { apiBasePath } from 'config';
-
-
 class Documents extends React.PureComponent { // eslint-disable-line react/prefer-stateless-function
 
     constructor(props) {
@@ -84,7 +81,7 @@ class Documents extends React.PureComponent { // eslint-disable-line react/prefe
     }
 
     renderDocument(data) {
-        const href = `${apiBasePath}/documents/${data.id}`;
+        const href = `${process.env.REACT_APP_API_BASE_PATH}/documents/${data.id}`;
         return (
             <ListItem
                 key={data.id}

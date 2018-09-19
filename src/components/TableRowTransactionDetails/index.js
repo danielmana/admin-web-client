@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TableRow, TableCell } from 'components-next/material-ui/Table';
+import TableCell from '@material-ui/core/TableCell';
+import TableRow from '@material-ui/core/TableRow';
 import map from 'lodash/map';
 import pick from 'lodash/pick';
 import omit from 'lodash/omit';

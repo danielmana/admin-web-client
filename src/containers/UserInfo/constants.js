@@ -1,0 +1,3 @@
+export const UPDATE_USER_INFO = 'app/UserPage/UPDATE_USER_INFO';
+export const UPDATE_USER_INFO_SUCCESS = 'app/UserPage/UPDATE_USER_INFO_SUCCESS';
+export const UPDATE_USER_INFO_ERROR = 'app/UserPage/UPDATE_USER_INFO_ERROR';

@@ -14,10 +14,10 @@ import LanguageProvider from 'containers/LanguageProvider';
 import AppPage from 'containers/App';
 import LoginPage from 'containers/LoginPage';
 import NotFoundPage from 'containers/NotFoundPage';
-import configureTheme from 'theme/configureTheme';
 
 import './index.css';
 import { translationMessages } from './i18n';
+import configureTheme from './configureTheme';
 import configureStore from './configureStore';
 import registerServiceWorker from './registerServiceWorker';
 
@@ -37,9 +37,9 @@ const render = (messages) => {
                 <LanguageProvider messages={messages}>
                     <ConnectedRouter history={history}>
                         <Switch>
-                            <Route exact path="/" component={AppPage} />
-                            <Route path="/login" component={LoginPage} />
-                            <Route path="" component={NotFoundPage} />
+                            <Route exact path="/login" component={LoginPage} />
+                            <Route path="/" component={AppPage} />
+                            <Route component={NotFoundPage} />
                         </Switch>
                     </ConnectedRouter>
                 </LanguageProvider>

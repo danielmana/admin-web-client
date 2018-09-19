@@ -51,6 +51,14 @@ const validate = createValidator({
 
 export class LoginPage extends React.PureComponent { // eslint-disable-line react/prefer-stateless-function
 
+  componentWillMount() {
+    const { initialize } = this.props;
+    initialize({
+      username: '',
+      password: '',
+    });
+  }
+
   submit(data) {
     const { dispatchSignIn } = this.props;
     dispatchSignIn(data);
@@ -156,19 +164,12 @@ const withForm = reduxForm({
   validate,
 });
 
-// export default connect(mapStateToProps, mapDispatchToProps)(reduxForm({
-//   form: 'LoginPageForm',
-//   validate,
-// })(LoginPage));
-
-
-
 const withReducer = injectReducer({ key: 'loginPage', reducer });
 const withSaga = injectSaga({ key: 'loginPage', saga });
 
 export default compose(
   withReducer,
   withSaga,
-  withForm,
   withConnect,
+  withForm,
 )(LoginPage);

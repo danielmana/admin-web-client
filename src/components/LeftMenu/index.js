@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import Drawer from 'material-ui/Drawer';
 import { List, ListItem, makeSelectable } from 'material-ui/List';
 import map from 'lodash/map';
 
-import { configureThemeDark } from 'theme/configureTheme';
+import { configureThemeDark } from 'configureTheme';
 import storage from 'utils/storage';
 import { MENU_ITEMS } from './constants';
 import messages from './messages';
@@ -49,11 +50,12 @@ class LeftMenu extends React.PureComponent { // eslint-disable-line react/prefer
     }
 
     onMenuItemSelected(event, value) {
+        const { history } = this.props;
         if (value === 'logout') {
             storage.removeUser();
-            this.context.router.push('/login');
+            history.push('/login');
         } else {
-            this.context.router.push(value);
+            history.push(value);
         }
     }
 
@@ -125,4 +127,4 @@ LeftMenu.contextTypes = {
     router: PropTypes.object,
 };
 
-export default LeftMenu;
+export default withRouter(LeftMenu);

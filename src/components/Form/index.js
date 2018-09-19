@@ -1,4 +1,5 @@
 import React from 'react';
+import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { FlatButton, RaisedButton, FontIcon, Toolbar, ToolbarGroup, Paper } from 'material-ui';
@@ -50,11 +51,11 @@ class Form extends React.PureComponent { // eslint-disable-line react/prefer-sta
   }
 
   goBack() {
-    const { dataType, backRoute } = this.props;
+    const { history, dataType, backRoute } = this.props;
     if (!backRoute) {
-      this.context.router.push(`/${dataType}`);
+      history.push(`/${dataType}`);
     } else {
-      this.context.router.push(`/${backRoute}`);
+      history.push(`/${backRoute}`);
     }
   }
 
@@ -71,11 +72,11 @@ class Form extends React.PureComponent { // eslint-disable-line react/prefer-sta
   }
 
   onCopySubmit() {
-    const { item, copyItem } = this.props;
+    const { history, item, copyItem } = this.props;
     return copyItem(item)
       .then((copy) => {
         const { dataType } = this.props;
-        this.context.router.push(`/${dataType}/${copy.id}/edit`);
+        history.push(`/${dataType}/${copy.id}/edit`);
       });
   }
 
@@ -220,4 +221,4 @@ Form.contextTypes = {
   router: PropTypes.object,
 };
 
-export default Form;
+export default withRouter(Form);

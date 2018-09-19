@@ -8,17 +8,15 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Switch, Route } from 'react-router-dom';
 import Helmet from 'react-helmet';
 import styled from 'styled-components';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 
-import MuiThemeProvider from 'components-next/material-ui/styles/MuiThemeProvider';
-import createPalette from 'components-next/material-ui/styles/palette';
-import createMuiTheme from 'components-next/material-ui/styles/theme';
-import { blue, pink } from 'components-next/material-ui/styles/colors';
+import UsersPage from 'containers/UsersPage';
+import NotFoundPage from 'containers/NotFoundPage';
 import LeftMenu from 'components/LeftMenu';
-
 import LoadingProgress from 'components/LoadingProgress';
 import SnackbarError from 'components/SnackbarError';
 import SnackbarSuccess from 'components/SnackbarSuccess';
@@ -40,28 +38,8 @@ export const ContentWrapper = styled.div`
 
 class App extends React.Component {
 
-  getChildContext() {
-    const primary = {
-      ...blue,
-      500: '#246ab2',
-    };
-    const accent = {
-      ...pink,
-      500: '#bc236e',
-    };
-    const palette = createPalette({
-      primary,
-      accent,
-      type: 'light',
-    });
-    const { styleManager, theme } = MuiThemeProvider.createDefaultContext({
-      theme: createMuiTheme({ palette }),
-    });
-    return { styleManager, theme };
-  }
-
   render() {
-    const { children } = this.props;
+    // TODO add routes
     return (
       <div>
         <Helmet
@@ -73,7 +51,10 @@ class App extends React.Component {
         />
         <div>
           {this.renderLeftMenu()}
-          {children}
+          <Switch>
+            <Route path="/users" component={UsersPage} />
+            <Route component={NotFoundPage} />
+          </Switch>
           {this.renderLoading()}
           {this.renderError()}
           {this.renderSuccess()}
@@ -84,9 +65,6 @@ class App extends React.Component {
 
   renderLeftMenu() {
     const { location: { pathname } } = this.props;
-    if (pathname === '/login') {
-      return;
-    }
     return (
       <LeftMenu
         pathname={pathname}
@@ -126,7 +104,6 @@ class App extends React.Component {
 }
 
 App.propTypes = {
-  children: PropTypes.node,
   loading: PropTypes.bool,
   location: PropTypes.object,
   error: PropTypes.oneOfType([
@@ -155,11 +132,6 @@ function mapDispatchToProps(dispatch) {
     },
   };
 }
-
-App.childContextTypes = {
-  styleManager: PropTypes.object.isRequired,
-  theme: PropTypes.object.isRequired,
-};
 
 // Wrap the component to inject dispatch and state into it
 export default connect(mapStateToProps, mapDispatchToProps)(App);
