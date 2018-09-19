@@ -10,16 +10,6 @@ const styles = {
   },
 };
 
-class CircularProgressCentered extends React.PureComponent { // eslint-disable-line react/prefer-stateless-function
-
-  render() {
-    return (
-      <CircularProgress
-        style={styles.root}
-      />
-    );
-  }
-}
+const CircularProgressCentered = () => <CircularProgress style={styles.root} />;
 
 export default CircularProgressCentered;
-

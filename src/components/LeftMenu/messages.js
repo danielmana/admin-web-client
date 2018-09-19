@@ -5,7 +5,6 @@
  */
 import { defineMessages } from 'react-intl';
 
-
 export default defineMessages({
   users: {
     id: 'app.components.LeftMenu.users',

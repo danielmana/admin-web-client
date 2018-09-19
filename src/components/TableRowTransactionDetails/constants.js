@@ -1,6 +1,1 @@
-export const TRANSACTION_DETAIL_PROPERTIES = [
-  'amount',
-  'date',
-  'transactionStatus',
-  'externalTransactionId',
-];
+export const TRANSACTION_HISTORY_PROPERTIES = ['amount', 'date', 'transactionStatus', 'externalTransactionId'];

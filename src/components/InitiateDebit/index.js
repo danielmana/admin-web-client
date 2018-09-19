@@ -16,194 +16,150 @@ import FormSelectField from 'components/Form/FormSelectField';
 
 import { DEBIT_OPTIONS } from './constants';
 
-
-class InitiateDebit extends React.PureComponent { // eslint-disable-line react/prefer-stateless-function
-
-    constructor() {
-        super();
-        this.renderInitiateDebitOptions = this.renderInitiateDebitOptions.bind(this);
-        this.renderInitiateDebitDialog = this.renderInitiateDebitDialog.bind(this);
-        this.state = {
-            openDebitDialog: false,
-            openConfirmDialog: false,
-        };
-    }
-
-
-    render() {
-        return (
-            <div>
-                <AppBar
-                    title="Initiate Debit"
-                    showMenuIconButton={false}
-                    iconElementRight={this.renderDebitButton()}
-                />
-                <Card>
-                    {this.renderInitiateDebitOptions()}
-                    {this.renderInitiateDebitDialog()}
-                    {this.renderConfirmDialog()}
-                </Card>
-            </div>
-        );
-    }
-
-    handleOpenDebitDialog = () => {
-        this.setState({
-            openDebitDialog: true,
-        });
+class InitiateDebit extends React.PureComponent {
+  constructor() {
+    super();
+    this.state = {
+      openDebitDialog: false,
+      openConfirmDialog: false,
     };
+  }
 
-    handleCloseDebitDialog = () => {
-        this.setState({
-            openDebitDialog: false,
-        });
+  render() {
+    return (
+      <div>
+        <AppBar title="Initiate Debit" showMenuIconButton={false} iconElementRight={this.renderDebitButton()} />
+        <Card>
+          {this.renderInitiateDebitOptions()}
+          {this.renderInitiateDebitDialog()}
+          {this.renderConfirmDialog()}
+        </Card>
+      </div>
+    );
+  }
+
+  handleOpenDebitDialog = () => {
+    this.setState({
+      openDebitDialog: true,
+    });
+  };
+
+  handleCloseDebitDialog = () => {
+    this.setState({
+      openDebitDialog: false,
+    });
+  };
+
+  handleOpenConfirmDialog = () => {
+    this.handleCloseDebitDialog();
+    this.setState({
+      openConfirmDialog: true,
+    });
+  };
+
+  handleCloseConfirmDialog = () => {
+    this.setState({
+      openConfirmDialog: false,
+    });
+    this.handleOpenDebitDialog();
+  };
+
+  handleSubmit = (data) => {
+    if (!this.props.submitting) {
+      this.props.setInitiateCreditDebit(data);
+    }
+  };
+
+  renderConfirmDialog = () => {
+    const { amount, initiateDebit, description, businessId } = this.props;
+    const data = {
+      businessId,
+      amount: amount || '',
+      transferType: 'debit',
+      transferSubType: initiateDebit,
+      description: description || '',
     };
+    return (
+      <DialogConfirm
+        visible={this.state.openConfirmDialog}
+        onCancel={this.handleCloseConfirmDialog}
+        onCancelNext={this.handleCloseDebitDialog}
+        onSubmit={this.handleSubmit}
+        data={data}
+      />
+    );
+  };
 
-    handleOpenConfirmDialog = () => {
-        this.handleCloseDebitDialog();
-        this.setState({
-            openConfirmDialog: true,
-        });
-    };
+  renderDebitButton = () => <FlatButton label="Debit" onClick={this.handleOpenDebitDialog} />;
 
-    handleCloseConfirmDialog = () => {
-        this.setState({
-            openConfirmDialog: false,
-        });
-        this.handleOpenDebitDialog();
-    };
+  renderInitiateDebitOptions = () => (
+    <Field name="initiateDebit" label="Initiate Debit" options={DEBIT_OPTIONS} component={FormSelectField} />
+  );
 
-    renderConfirmDialog() {
-        /*eslint-disable */
-        const { setInitiateCreditDebit, amount, initiateDebit, description, userId } = this.props;
-        /*eslint-disable */
-        const data = {
-            userId,
-            amount: amount || '',
-            transferType: 'debit',
-            transferSubType: initiateDebit,
-            description: description || '',
-        };
-        return (
-            <DialogConfirm
-                visible={this.state.openConfirmDialog}
-                onCancel={this.handleCloseConfirmDialog}
-                onCancelNext={this.handleCloseDebitDialog}
-                onSubmit={setInitiateCreditDebit}
-                data={data}
-            />
-        );
+  renderInitiateDebitDialog = () => {
+    const { initiateDebit } = this.props;
+    const actions = [
+      <FlatButton label="Cancel" onClick={this.handleCloseDebitDialog} />,
+      <FlatButton label="Confirm" onClick={this.handleOpenConfirmDialog} />,
+    ];
+
+    if (initiateDebit === 'expedite_fee' || initiateDebit === 'unload' || initiateDebit === 'refund_check_fee') {
+      return (
+        <div>
+          <Dialog
+            title="Initiate Debit"
+            actions={actions}
+            modal={false}
+            open={this.state.openDebitDialog}
+            onRequestClose={this.handleCloseDebitDialog}
+          >
+            <form>{this.renderAmount()}</form>
+          </Dialog>
+        </div>
+      );
     }
 
-    renderDebitButton() {
-        return (
-            <FlatButton
-                label="Debit"
-                onClick={this.handleOpenDebitDialog}
-            />
-        );
-    }
+    return (
+      <div>
+        <Dialog
+          title="Initiate"
+          actions={actions}
+          modal={false}
+          open={this.state.openDebitDialog}
+          onRequestClose={this.handleCloseDebitDialog}
+        >
+          <form>
+            {this.renderAmount()}
+            {this.renderDescription()}
+          </form>
+        </Dialog>
+      </div>
+    );
+  };
 
-    renderInitiateDebitOptions() {
-        return (
-            <Field
-                name="initiateDebit"
-                label="Initiate Debit"
-                options={DEBIT_OPTIONS}
-                component={FormSelectField}
-            />
-        );
-    }
+  renderAmount = () => <Field name="amount" label="Amount" component={FormTextField} />;
 
-    renderInitiateDebitDialog() {
-        const { initiateDebit } = this.props;
-        const actions = [
-            <FlatButton
-                label="Cancel"
-                onClick={this.handleCloseDebitDialog}
-            />,
-            <FlatButton
-                label="Confirm"
-                onClick={this.handleOpenConfirmDialog}
-            />,
-        ];
-
-        if (initiateDebit === 'expedite_fee' || initiateDebit === 'unload') {
-            return (
-                <div>
-                    <Dialog
-                        title="Initiate Debit"
-                        actions={actions}
-                        modal={false}
-                        open={this.state.openDebitDialog}
-                        onRequestClose={this.handleCloseDebitDialog}
-                    >
-
-                        <form>
-                            {this.renderAmount()}
-                        </form>
-
-                    </Dialog>
-                </div>
-            );
-        }
-
-        return (
-            <div>
-                <Dialog
-                    title="Initiate"
-                    actions={actions}
-                    modal={false}
-                    open={this.state.openDebitDialog}
-                    onRequestClose={this.handleCloseDebitDialog}
-                >
-                    <form>
-                        {this.renderAmount()}
-                        {this.renderDescription()}
-                    </form>
-                </Dialog>
-            </div>
-        );
-    }
-
-    renderAmount() {
-        return (
-            <Field
-                name="amount"
-                label="Amount"
-                component={FormTextField}
-            />
-        );
-    }
-
-    renderDescription() {
-        return (
-            <Field
-                name="description"
-                label="Description"
-                component={FormTextField}
-            />
-        );
-    }
+  renderDescription = () => <Field name="description" label="Description" component={FormTextField} />;
 }
 
 InitiateDebit.propTypes = {
-    setInitiateCreditDebit: PropTypes.func.isRequired,
-    debitOptions: PropTypes.object,
-    initiateDebit: PropTypes.string,
-    amount: PropTypes.string,
-    courtesyReasons: PropTypes.string,
-    description: PropTypes.string,
-    userId: PropTypes.number,
+  setInitiateCreditDebit: PropTypes.func.isRequired,
+  initiateDebit: PropTypes.string,
+  amount: PropTypes.string,
+  description: PropTypes.string,
+  businessId: PropTypes.number,
+  submitting: PropTypes.bool,
 };
 
 const mapStateToProps = createStructuredSelector({
-    initiateDebit: makeSelectFormField('InitiateDebit', 'initiateDebit'),
-    amount: makeSelectFormField('InitiateDebit', 'amount'),
-    courtesyReasons: makeSelectFormField('InitiateDebit', 'courtesyReasons'),
-    description: makeSelectFormField('InitiateDebit', 'description'),
+  initiateDebit: makeSelectFormField('InitiateDebit', 'initiateDebit'),
+  amount: makeSelectFormField('InitiateDebit', 'amount'),
+  courtesyReasons: makeSelectFormField('InitiateDebit', 'courtesyReasons'),
+  description: makeSelectFormField('InitiateDebit', 'description'),
 });
 
-export default connect(mapStateToProps)(reduxForm({
+export default connect(mapStateToProps)(
+  reduxForm({
     form: 'InitiateDebit',
-})(InitiateDebit));
+  })(InitiateDebit)
+);

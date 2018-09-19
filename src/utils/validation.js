@@ -1,6 +1,5 @@
 const isEmpty = (value) => value === undefined || value === null || value === '';
-const join = (rules) => (value, data) =>
-  rules.map((rule) => rule(value, data)).filter((error) => !!error)[0];
+const join = (rules) => (value, data) => rules.map((rule) => rule(value, data)).filter((error) => !!error)[0];
 
 export function required(value) {
   if (isEmpty(value)) {
@@ -19,7 +18,7 @@ export function email(value) {
 export function maxLength(max) {
   return (value) => {
     if (!isEmpty(value) && value.length > max) {
-      return `Must be no more than ${max} characters`;
+      return `Must be ${max} characters or less`;
     }
     return false;
   };
@@ -49,7 +48,7 @@ export function password(oldPassword) {
 export function match(s) {
   return (value) => {
     if (value !== s) {
-      return 'Passwords don\'t match';
+      return "Passwords don't match";
     }
     return false;
   };

@@ -4,6 +4,10 @@ export const DEBIT_OPTIONS = [
     name: 'Expedite fee',
   },
   {
+    id: 'refund_check_fee',
+    name: 'Refund Check Fee',
+  },
+  {
     id: 'unload',
     name: 'Unload',
   },

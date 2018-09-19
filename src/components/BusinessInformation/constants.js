@@ -1,3 +1,26 @@
+export const PROGRAM = [
+  {
+    id: 'bento_cfsb',
+    name: 'Bento CFSB',
+  },
+  {
+    id: 'bento_bancorp',
+    name: 'Bento Bancorp',
+  },
+  {
+    id: 'FLEETCOR',
+    name: 'Fleetcor',
+  },
+  {
+    id: 'brinks_bancorp',
+    name: "Brink's",
+  },
+  {
+    id: 'ccrew_bancorp',
+    name: 'Cast & Crew',
+  },
+];
+
 export const EMPLOYEES = [
   {
     id: '1',

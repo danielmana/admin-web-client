@@ -7,7 +7,6 @@ import { FlatButton, RaisedButton, FontIcon, Toolbar, ToolbarGroup, Paper } from
 import CircularProgressCentered from 'components/CircularProgressCentered';
 import DialogDelete from 'components/Dialogs/DialogDelete';
 
-
 const RootWrapper = styled.div`
   flex: 1;
   display: flex;
@@ -36,7 +35,8 @@ const styles = {
   },
 };
 
-class Form extends React.PureComponent { // eslint-disable-line react/prefer-stateless-function
+class Form extends React.PureComponent {
+  // eslint-disable-line react/prefer-stateless-function
 
   constructor(props) {
     super(props);
@@ -51,11 +51,11 @@ class Form extends React.PureComponent { // eslint-disable-line react/prefer-sta
   }
 
   goBack() {
-    const { history, dataType, backRoute } = this.props;
+    const { dataType, backRoute } = this.props;
     if (!backRoute) {
-      history.push(`/${dataType}`);
+      this.context.router.push(`/${dataType}`);
     } else {
-      history.push(`/${backRoute}`);
+      this.context.router.push(`/${backRoute}`);
     }
   }
 
@@ -85,20 +85,13 @@ class Form extends React.PureComponent { // eslint-disable-line react/prefer-sta
     if (loading || submitting) {
       return <CircularProgressCentered />;
     }
-    return (
-      <RootWrapper>
-        {this.renderForm()}
-      </RootWrapper>
-    );
+    return <RootWrapper>{this.renderForm()}</RootWrapper>;
   }
 
   renderForm() {
     const { handleSubmit, submit, children } = this.props;
     return (
-      <form
-        style={styles.form}
-        onSubmit={handleSubmit((values) => submit(values))}
-      >
+      <form style={styles.form} onSubmit={handleSubmit((values) => submit(values))}>
         {children}
         {this.renderToolbar()}
         {this.renderDialogDelete()}
@@ -108,16 +101,9 @@ class Form extends React.PureComponent { // eslint-disable-line react/prefer-sta
 
   renderToolbar() {
     return (
-      <Paper
-        style={styles.toolbar}
-        zDepth={2}
-        rounded={false}
-      >
+      <Paper style={styles.toolbar} zDepth={2} rounded={false}>
         <Toolbar>
-          <ToolbarGroup
-            style={{ flex: 1 }}
-            firstChild
-          >
+          <ToolbarGroup style={{ flex: 1 }} firstChild>
             {this.renderActionDelete()}
           </ToolbarGroup>
           <ToolbarGroup lastChild>
@@ -192,7 +178,9 @@ class Form extends React.PureComponent { // eslint-disable-line react/prefer-sta
         data={[item]}
         dataType={dataType}
         visible={dialogDeleteVisible}
-        onCancel={() => { this.setDialogDeleteVisible(false); }}
+        onCancel={() => {
+          this.setDialogDeleteVisible(false);
+        }}
         onSubmit={this.onDeleteSubmit}
       />
     );
@@ -200,10 +188,7 @@ class Form extends React.PureComponent { // eslint-disable-line react/prefer-sta
 }
 
 Form.propTypes = {
-  item: PropTypes.oneOfType([
-    PropTypes.object,
-    PropTypes.bool,
-  ]),
+  item: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   dataType: PropTypes.string,
   backRoute: PropTypes.string,
   loading: PropTypes.bool,

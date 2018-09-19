@@ -1,22 +1,66 @@
-import { LOAD_ENROLLMENTS, LOAD_ENROLLMENTS_SUCCESS, LOAD_ENROLLMENTS_ERROR } from './constants';
+import {
+  LOAD_ENROLLMENT,
+  LOAD_ENROLLMENT_SUCCESS,
+  LOAD_ENROLLMENT_ERROR,
+  LOAD_ENROLLMENT_DETAILS_SUCCESS,
+  UPLOAD_DOCUMENT,
+  UPLOAD_DOCUMENT_SUCCESS,
+  UPLOAD_DOCUMENT_ERROR,
+  GET_DOCUMENT,
+} from './constants';
 
-export function loadEnrollments(filters) {
+export function loadEnrollment(id) {
   return {
-    type: LOAD_ENROLLMENTS,
-    filters,
+    type: LOAD_ENROLLMENT,
+    id,
   };
 }
 
-export function loadEnrollmentsSuccess(response) {
+export function loadEnrollmentSuccess(response) {
   return {
-    type: LOAD_ENROLLMENTS_SUCCESS,
+    type: LOAD_ENROLLMENT_SUCCESS,
     response,
   };
 }
 
-export function loadEnrollmentsError(error) {
+export function loadEnrollmentError(error) {
   return {
-    type: LOAD_ENROLLMENTS_ERROR,
+    type: LOAD_ENROLLMENT_ERROR,
     error,
+  };
+}
+
+export function loadEnrollmentDetailsSuccess(response) {
+  return {
+    type: LOAD_ENROLLMENT_DETAILS_SUCCESS,
+    response,
+  };
+}
+
+export function uploadDocument(data) {
+  return {
+    type: UPLOAD_DOCUMENT,
+    data,
+  };
+}
+
+export function uploadDocumentSuccess(response) {
+  return {
+    type: UPLOAD_DOCUMENT_SUCCESS,
+    response,
+  };
+}
+
+export function uploadDocumentError(error) {
+  return {
+    type: UPLOAD_DOCUMENT_ERROR,
+    error,
+  };
+}
+
+export function getDocument(data) {
+  return {
+    type: GET_DOCUMENT,
+    data,
   };
 }

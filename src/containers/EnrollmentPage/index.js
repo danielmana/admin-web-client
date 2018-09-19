@@ -1,234 +1,166 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { createStructuredSelector } from 'reselect';
+import { compose } from 'redux';
 import { withRouter } from 'react-router-dom';
-import { fromJS } from 'immutable';
-import { reduxForm, Field } from 'redux-form/immutable';
-import Paper from 'material-ui/Paper';
-import { GridList } from 'material-ui/GridList';
-import { Card, CardText } from 'material-ui/Card';
-import isEmpty from 'lodash/isEmpty';
+import { reduxForm } from 'redux-form/immutable';
+import { Grid, Row, Col } from 'react-flexbox-grid';
+import { createStructuredSelector } from 'reselect';
+import FlatButton from 'material-ui/FlatButton';
+import head from 'lodash/head';
+import last from 'lodash/last';
 
+import injectReducer from 'utils/injectReducer';
+import injectSaga from 'utils/injectSaga';
 import { ContentWrapper } from 'containers/App/index';
-import Filters from 'components/Filters';
-import FormTextField from 'components/Form/FormTextField';
-import FormSelectField from 'components/Form/FormSelectField';
-import FormDatePicker from 'components/Form/FormDatePicker';
-import FormFieldBusinessStatus from 'components/Form/FormFieldBusinessStatus';
-import EnhancedTable from 'components/EnhancedTable';
-import Pagination from 'components/Pagination';
-import PageField from 'components/PageField';
-import { loadEnrollments } from './actions';
-import { makeSelectLoading, makeSelectEnrollment, makeSelectFilters } from './selectors';
+import CircularProgressCentered from 'components/CircularProgressCentered';
+import BusinessInformation from 'components/BusinessInformation';
+import CardShippingAddress from 'components/CardShippingAddress';
+import OperationsDecision from 'components/OperationsDecision';
+import IDVerification from 'components/IDVerification';
+import Documents from 'components/Documents';
+import reducer from 'containers/EnrollmentPage/reducer';
+import reducerBusinessInfo from 'containers/EnrollmentPage/BusinessInfo/reducer';
+import reducerCardShippingAddress from 'containers/EnrollmentPage/CardShippingAddress/reducer';
+import saga from 'containers/EnrollmentPage/saga';
+import sagaBusinessInfo from 'containers/EnrollmentPage/BusinessInfo/saga';
+import sagaCardShippingAddress from 'containers/EnrollmentPage/CardShippingAddress/saga';
 
-import { DEFAULT_PAGE_SIZE, CLASSIFICATION, PROGRAM } from './constants';
-
-const columnData = [
-  { id: 'enrollmentId', label: 'Enrollment ID' },
-  { id: 'nameOnCard', label: 'Business Name' },
-  { id: 'businessName', label: 'Legal Business Name' },
-  { id: 'firstName', label: 'First Name' },
-  { id: 'lastName', label: 'Last Name' },
-  { id: 'date', label: 'Sign up date' },
-  { id: 'city', label: 'City' },
-  { id: 'state', label: 'State' },
-  { id: 'phone', label: 'Business Owner Phone No' },
-  { id: 'program', label: 'Program' },
-  { id: 'status', label: 'Enrollment Status' },
-];
+import { loadEnrollment, getDocument } from './actions';
+import { updateBusinessInfo } from './BusinessInfo/actions';
+import { updateCardShippingAddress } from './CardShippingAddress/actions';
+import {
+  makeSelectEnrollmentLoading,
+  makeSelectEnrollment,
+  makeSelectEnrollmentError,
+  makeSelectEnrollmentDetails,
+} from './selectors';
 
 const styles = {
-  gridStyles: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-  },
-  gridDefault: {
-    padding: '0px 16px',
-    fontSize: '14px',
-    color: 'rgb(14, 53, 81)',
-  },
-  gridList: {
-    display: 'flex',
-    flexWrap: 'nowrap',
-    overflowX: 'auto',
-  },
-  actions: {
-    paddingLeft: 16,
-    paddingBottom: 32,
-  },
-  pagination: {
-    width: 134,
-    marginLeft: 5,
-  },
-  pageSelect: {
-    width: 120,
-    margin: '0 10px',
-    verticalAlign: 'bottom',
+  gridContainer: {
+    margin: 0,
   },
 };
 
 export class EnrollmentPage extends React.PureComponent {
-  // eslint-disable-line react/prefer-stateless-function
-
   constructor() {
     super();
-    this.onFiltersSubmit = this.onFiltersSubmit.bind(this);
-    this.handleUserDetailClick = this.handleUserDetailClick.bind(this);
-    this.state = {
-      page: 1,
-    };
+    this.handleBackButton = this.handleBackButton.bind(this);
   }
 
-  componentDidMount() {
-    const {
-      dispatchLoadEnrollments,
-      filters,
-      location: { query },
-    } = this.props;
-    if (isEmpty(query)) {
-      dispatchLoadEnrollments(filters);
-    } else {
-      dispatchLoadEnrollments(fromJS(query));
-    }
-  }
-
-  onFiltersSubmit(values) {
-    const { dispatchLoadEnrollments } = this.props;
-    dispatchLoadEnrollments(values);
+  componentWillMount() {
+    const { dispatchLoadEnrollment, match: { params } } = this.props;
+    dispatchLoadEnrollment(params.id);
   }
 
   render() {
-    return (
-      <ContentWrapper>
-        <Card>{this.renderFilters()}</Card>
+    const {
+      loading,
+      enrollment,
+      enrollmentDetails,
+      dispatchUpdateBusinessInfo,
+      dispatchUpdateCardShippingAddress,
+      dispatchGetDocument,
+    } = this.props;
 
-        {this.renderTable()}
-        <div style={styles.pagination}>{this.renderPagination()}</div>
-      </ContentWrapper>
-    );
+    if (loading) {
+      return <CircularProgressCentered />;
+    }
+    if (enrollment && enrollmentDetails) {
+      const businessInfo = {
+        ownerFirstName: enrollment.firstName,
+        ownerLastName: enrollment.lastName,
+        ssnLast4Digits: enrollment.ssnLast4Digits,
+        enrollmentId: enrollment.enrollmentId,
+        businessId: enrollment.businessId,
+        status: enrollment.operationsDecision.status,
+        companyName: enrollment.companyName,
+        nameOnCard: enrollment.nameOnCard,
+        businessStructure: enrollment.businessStructure,
+        addresses: [
+          {
+            street: enrollment.businessAddress.street,
+            addressAdditionals: enrollment.businessAddress.addressAdditionals,
+            city: enrollment.businessAddress.city,
+            state: enrollment.businessAddress.state,
+            zipCode: enrollment.businessAddress.zipCode,
+            addressType: enrollment.businessAddress.addressType,
+          },
+          {
+            street: enrollment.businessShippingAddress.street,
+            addressAdditionals: enrollment.businessShippingAddress.addressAdditionals,
+            city: enrollment.businessShippingAddress.city,
+            state: enrollment.businessShippingAddress.state,
+            zipCode: enrollment.businessShippingAddress.zipCode,
+            addressType: enrollment.businessShippingAddress.addressType,
+          },
+        ],
+        phone: enrollment.businessPhone,
+        industry: enrollment.industry,
+        additionalInfo: {
+          employeeQty: enrollment.employeeQty,
+        },
+        taxId: enrollment.taxId,
+        timeZone: '',
+        email: enrollment.email,
+      };
+
+      const operationsDecision = {
+        ...enrollment.operationsDecision,
+      };
+
+      const verification = {
+        ...head(head(enrollmentDetails)),
+      };
+
+      const documents = {
+        ...last(enrollmentDetails),
+      };
+
+      return (
+        <ContentWrapper>
+          <Grid fluid style={styles.gridContainer}>
+            <Row>{this.renderBackButton()}</Row>
+            <Row>
+              <Col xs={12} md={6}>
+                <BusinessInformation businessInfo={businessInfo} update={dispatchUpdateBusinessInfo} renderEnrollment />
+                <br />
+                <CardShippingAddress businessInfo={businessInfo} update={dispatchUpdateCardShippingAddress} />
+              </Col>
+              <Col xs={12} md={6}>
+                <OperationsDecision operationsDecision={operationsDecision} />
+                <br />
+                <IDVerification verification={verification} />
+                <br />
+                <Documents documents={documents} businessID={enrollment.businessId} getDocument={dispatchGetDocument} />
+              </Col>
+            </Row>
+          </Grid>
+        </ContentWrapper>
+      );
+    }
+
+    return <CircularProgressCentered />;
   }
 
-  renderFilters() {
-    return (
-      <div>
-        {this.renderSearchFields()}
-        <Filters onSubmit={this.onFiltersSubmit} simpleSearch {...this.props} />
-      </div>
-    );
+  renderBackButton() {
+    return <FlatButton label="Back to Enrollment" onClick={this.handleBackButton} />;
   }
 
-  renderSearchFields() {
-    return (
-      <div style={styles.gridDefault}>
-        <GridList cellHeight={75} cols={5} rows={3}>
-          {this.renderBusinessName()}
-          {this.renderLegalBusinessName()}
-          {this.renderBusinessID()}
-          {this.renderUserEmail()}
-          {this.renderSignUpDate()}
-          {this.renderFirstName()}
-          {this.renderLastName()}
-          {this.renderEnrollmentStatus()}
-          {this.renderPhoneNumber()}
-          {this.renderClassification()}
-          {this.renderProgram()}
-        </GridList>
-      </div>
-    );
-  }
-
-  renderBusinessName() {
-    return <Field autoFocus name="businessName" label="Business name" component={FormTextField} />;
-  }
-
-  renderLegalBusinessName() {
-    return <Field name="legalBusinessName" label="Legal business name" component={FormTextField} />;
-  }
-
-  renderBusinessID() {
-    return <Field name="businessId" label="Business ID" component={FormTextField} />;
-  }
-
-  renderUserEmail() {
-    return <Field name="userEmail" label="User email" component={FormTextField} />;
-  }
-
-  renderSignUpDate() {
-    return <Field name="signUpDate" label="Sign up Date" component={FormDatePicker} />;
-  }
-
-  renderFirstName() {
-    return <Field name="firstName" label="First name" component={FormTextField} />;
-  }
-
-  renderLastName() {
-    return <Field name="lastName" label="Last name" component={FormTextField} />;
-  }
-
-  renderEnrollmentStatus() {
-    return <FormFieldBusinessStatus name="enrollmentStatus" label="Enrollment status" />;
-  }
-
-  renderPhoneNumber() {
-    return <Field name="phoneNumber" label="Phone number" component={FormTextField} />;
-  }
-
-  renderClassification() {
-    return <Field name="classification" label="Classification" options={CLASSIFICATION} component={FormSelectField} />;
-  }
-
-  renderProgram() {
-    return <Field name="program" label="Program" options={PROGRAM} component={FormSelectField} />;
-  }
-
-  handleUserDetailClick(item) {
+  handleBackButton() {
     const { history } = this.props;
-    history.push(`/enrollment/${item.enrollmentId}`);
-  }
-
-  renderTable() {
-    const { loading, enrollments } = this.props;
-    if (enrollments !== null && enrollments.count !== 0) {
-      return (
-        <Paper zDepth={1}>
-          <EnhancedTable
-            loading={loading}
-            data={enrollments.results}
-            columnData={columnData}
-            onClick={this.handleUserDetailClick}
-          />
-        </Paper>
-      );
-    }
-
-    return (
-      <Card>
-        <CardText>No results</CardText>
-      </Card>
-    );
-  }
-
-  renderPagination() {
-    const { enrollments } = this.props;
-    if (enrollments != null && enrollments.count !== 0) {
-      return (
-        <div>
-          <PageField data={enrollments} pageSize={DEFAULT_PAGE_SIZE} />
-          <Pagination onSubmit={this.onFiltersSubmit} {...this.props} />
-        </div>
-      );
-    }
+    history.push('/enrollments');
   }
 }
 
 EnrollmentPage.propTypes = {
-  dispatchLoadEnrollments: PropTypes.func.isRequired,
-  enrollments: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+  dispatchLoadEnrollment: PropTypes.func.isRequired,
+  dispatchUpdateBusinessInfo: PropTypes.func.isRequired,
+  dispatchUpdateCardShippingAddress: PropTypes.func.isRequired,
+  dispatchGetDocument: PropTypes.func.isRequired,
   loading: PropTypes.bool,
-  location: PropTypes.object,
-  filters: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+  enrollment: PropTypes.oneOfType([PropTypes.bool, PropTypes.array, PropTypes.object]),
+  enrollmentDetails: PropTypes.oneOfType([PropTypes.bool, PropTypes.array, PropTypes.object]),
 };
 
 EnrollmentPage.contextTypes = {
@@ -236,24 +168,54 @@ EnrollmentPage.contextTypes = {
 };
 
 const mapStateToProps = createStructuredSelector({
-  loading: makeSelectLoading(),
-  enrollments: makeSelectEnrollment(),
-  filters: makeSelectFilters(),
+  loading: makeSelectEnrollmentLoading(),
+  enrollment: makeSelectEnrollment(),
+  error: makeSelectEnrollmentError(),
+  enrollmentDetails: makeSelectEnrollmentDetails(),
 });
 
 function mapDispatchToProps(dispatch) {
   return {
-    dispatchLoadEnrollments: (filters) => {
-      dispatch(loadEnrollments(filters));
+    dispatchLoadEnrollment: (id) => {
+      dispatch(loadEnrollment(id));
+    },
+    dispatchUpdateBusinessInfo: (data) => {
+      dispatch(updateBusinessInfo(data.toJS()));
+    },
+    dispatchUpdateCardShippingAddress: (data) => {
+      dispatch(updateCardShippingAddress(data.toJS()));
+    },
+    dispatchGetDocument: (data) => {
+      dispatch(getDocument(data));
     },
   };
 }
 
-export default connect(
+const withConnect = connect(
   mapStateToProps,
-  mapDispatchToProps
-)(
-  reduxForm({
-    form: 'EnrollmentPage',
-  })(withRouter(EnrollmentPage))
+  mapDispatchToProps,
 );
+
+const withForm = reduxForm({
+  form: 'EnrollmentPageForm',
+});
+
+const withReducer = injectReducer({ key: 'enrollmentPage', reducer });
+const withReducerBusinessInfo = injectReducer({ key: 'businessInfo', reducer: reducerBusinessInfo });
+const withReducerCardShippingAddress = injectReducer({ key: 'cardShippingAddress', reducer: reducerCardShippingAddress });
+
+const withSaga = injectSaga({ key: 'enrollmentPage', saga });
+const withSagaBusinessInfo = injectSaga({ key: 'businessInfo', saga: sagaBusinessInfo });
+const withSagaCardShippingAddress = injectSaga({ key: 'cardShippingAddress', saga: sagaCardShippingAddress });
+
+export default compose(
+  withReducer,
+  withReducerBusinessInfo,
+  withReducerCardShippingAddress,
+  withSaga,
+  withSagaBusinessInfo,
+  withSagaCardShippingAddress,
+  withConnect,
+  withForm,
+  withRouter,
+)(EnrollmentPage);

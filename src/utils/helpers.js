@@ -1,7 +1,6 @@
 import moment from 'moment';
 import numeral from 'numeral';
-import { map, isUndefined, isNull, isString } from 'lodash';
-
+import { map, get, isUndefined, isNull, isString, isObject, isArray, isNumber, isBoolean } from 'lodash';
 
 export function formatNumber(value) {
   return value ? value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0';
@@ -62,4 +61,50 @@ export function dateToMilliseconds(value) {
 
 export function millisecondsToDate(value) {
   return new Date(value);
+}
+
+export function getItemValue(item, config) {
+  // use callback if any
+  if (config.callback) {
+    return config.callback(item);
+  }
+  const id = get(config, 'id');
+  let value = get(item, id);
+
+  // date
+  if (config.date || id === 'date') {
+    return value ? toCardCreatedDate(value) : '-';
+  }
+  // currency
+  if (config.currency) {
+    return value ? numeral(value).format('$0,0.00') : 'n/a';
+  }
+  // amount
+  if (id === 'amount') {
+    return value ? toMoney(value) : '-';
+  }
+  // array
+  if (isArray(value)) {
+    return config.numeric ? value.length : mapValues(value, 'name');
+  }
+  // object
+  if (isObject(value)) {
+    return get(value, 'name', '-');
+  }
+  // boolean
+  if (isBoolean(value)) {
+    if (value.toString() != null) {
+      return value.toString() === 'true' ? 'Yes' : 'No';
+    }
+    return 'n/a';
+  }
+  // number
+  if (isNumber(value)) {
+    value = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    // prefix for IDs
+    if (id === 'id') {
+      value = `#${value}`;
+    }
+  }
+  return value;
 }

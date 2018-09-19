@@ -1,11 +1,19 @@
 import { createSelector } from 'reselect';
 
-const selectState = (state) => state.get('enrollment');
+const selectState = (state) => state.get('enrollmentPage');
 
-const makeSelectLoading = () => createSelector(selectState, (state) => state.get('loading'));
+const makeSelectEnrollmentLoading = () => createSelector(selectState, (state) => state.get('loading'));
 
-const makeSelectEnrollment = () => createSelector(selectState, (state) => state.get('enrollments'));
+const makeSelectEnrollment = () => createSelector(selectState, (state) => state.get('enrollment'));
 
-const makeSelectFilters = () => createSelector(selectState, (state) => state.get('filters'));
+const makeSelectEnrollmentError = () => createSelector(selectState, (state) => state.get('error'));
 
-export { selectState, makeSelectLoading, makeSelectEnrollment, makeSelectFilters };
+const makeSelectEnrollmentDetails = () => createSelector(selectState, (state) => state.get('enrollmentDetails'));
+
+export {
+  selectState,
+  makeSelectEnrollmentLoading,
+  makeSelectEnrollment,
+  makeSelectEnrollmentError,
+  makeSelectEnrollmentDetails,
+};

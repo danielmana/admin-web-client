@@ -8,21 +8,28 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
 import { Switch, Route } from 'react-router-dom';
 import Helmet from 'react-helmet';
 import styled from 'styled-components';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 
-import UsersPage from 'containers/UsersPage';
-import NotFoundPage from 'containers/NotFoundPage';
 import LeftMenu from 'components/LeftMenu';
 import LoadingProgress from 'components/LoadingProgress';
 import SnackbarError from 'components/SnackbarError';
 import SnackbarSuccess from 'components/SnackbarSuccess';
+import LoginPage from 'containers/LoginPage';
+import UsersPage from 'containers/UsersPage';
+import UserPage from 'containers/UserPage';
+import EnrollmentsPage from 'containers/EnrollmentsPage';
+import EnrollmentPage from 'containers/EnrollmentPage';
+import TransactionsPage from 'containers/TransactionsPage';
+import NotFoundPage from 'containers/NotFoundPage';
+import storage from 'utils/storage';
+
 import { resetError, resetSuccess } from './actions';
 import { makeSelectLoading, makeSelectCurrentUser, makeSelectError, makeSelectSuccess } from './selectors';
-
 
 export const ContentWrapper = styled.div`
   background-color: #ebebeb;
@@ -38,6 +45,15 @@ export const ContentWrapper = styled.div`
 
 class App extends React.Component {
 
+  componentWillMount() {
+    const { history, location: { pathname } } = this.props;
+    if (!storage.getUser()) {
+      history.push('/login');
+    } else if (pathname === '/') {
+      history.push('/users');
+    }
+  }
+
   render() {
     // TODO add routes
     return (
@@ -52,7 +68,12 @@ class App extends React.Component {
         <div>
           {this.renderLeftMenu()}
           <Switch>
+            <Route path="/login" component={LoginPage} />
             <Route path="/users" component={UsersPage} />
+            <Route path="/businesses/:businessId/users/:userId" component={UserPage} />
+            <Route path="/enrollments" component={EnrollmentsPage} />
+            <Route path="/enrollment/:id" component={EnrollmentPage} />
+            <Route path="/transactions" component={TransactionsPage} />
             <Route component={NotFoundPage} />
           </Switch>
           {this.renderLoading()}
@@ -65,6 +86,9 @@ class App extends React.Component {
 
   renderLeftMenu() {
     const { location: { pathname } } = this.props;
+    if (pathname === '/login') {
+      return;
+    }
     return (
       <LeftMenu
         pathname={pathname}
@@ -134,4 +158,6 @@ function mapDispatchToProps(dispatch) {
 }
 
 // Wrap the component to inject dispatch and state into it
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+export default connect(mapStateToProps, mapDispatchToProps)(
+  withRouter(App)
+);

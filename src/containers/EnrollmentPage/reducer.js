@@ -1,28 +1,36 @@
 import { fromJS } from 'immutable';
 
-import { LOAD_ENROLLMENTS, LOAD_ENROLLMENTS_SUCCESS, LOAD_ENROLLMENTS_ERROR } from './constants';
+import {
+  LOAD_ENROLLMENT,
+  LOAD_ENROLLMENT_SUCCESS,
+  LOAD_ENROLLMENT_ERROR,
+  LOAD_ENROLLMENT_DETAILS_SUCCESS,
+} from './constants';
 
 const initialState = fromJS({
   loading: false,
-  enrollments: false,
+  enrollment: false,
   error: false,
-  filters: {},
+  enrollmentDetails: false,
+  routeParams: false,
 });
 
-function enrollmentReducer(state = initialState, action) {
+function enrollmentPageDetailReducer(state = initialState, action) {
   switch (action.type) {
-    case LOAD_ENROLLMENTS:
+    case LOAD_ENROLLMENT:
       return state
         .set('loading', true)
         .set('error', false)
-        .set('filters', action.filters);
-    case LOAD_ENROLLMENTS_SUCCESS:
-      return state.set('loading', false).set('enrollments', action.response);
-    case LOAD_ENROLLMENTS_ERROR:
+        .set('params', action.routeParams);
+    case LOAD_ENROLLMENT_SUCCESS:
+      return state.set('loading', false).set('enrollment', action.response);
+    case LOAD_ENROLLMENT_ERROR:
       return state.set('error', action.error).set('loading', false);
+    case LOAD_ENROLLMENT_DETAILS_SUCCESS:
+      return state.set('enrollmentDetails', action.response);
     default:
       return state;
   }
 }
 
-export default enrollmentReducer;
+export default enrollmentPageDetailReducer;

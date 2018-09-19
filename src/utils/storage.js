@@ -1,7 +1,6 @@
 import localStorage from 'local-storage';
 import cookies from 'react-cookies';
 
-
 const KEY_USER = 'bt_admin:auth_user';
 const useLocalStorage = isLocalStorageAvailable();
 

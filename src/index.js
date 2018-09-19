@@ -12,7 +12,6 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 import LanguageProvider from 'containers/LanguageProvider';
 import AppPage from 'containers/App';
-import LoginPage from 'containers/LoginPage';
 import NotFoundPage from 'containers/NotFoundPage';
 
 import './index.css';
@@ -37,7 +36,6 @@ const render = (messages) => {
                 <LanguageProvider messages={messages}>
                     <ConnectedRouter history={history}>
                         <Switch>
-                            <Route exact path="/login" component={LoginPage} />
                             <Route path="/" component={AppPage} />
                             <Route component={NotFoundPage} />
                         </Switch>

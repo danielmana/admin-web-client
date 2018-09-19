@@ -8,6 +8,7 @@ import FlatButton from 'material-ui/FlatButton';
 import { createStructuredSelector } from 'reselect';
 import { makeSelectFormFields } from 'containers/App/selectors';
 import map from 'lodash/map';
+import isEmpty from 'lodash/isEmpty';
 
 import { createValidator, required } from 'utils/validation';
 
@@ -20,349 +21,281 @@ import { daysToShortName, toMoney, toCardCreatedDate } from 'utils/helpers';
 
 import { CARD_STATUS } from './constants';
 
-
 const styles = {
-    row: {
-        display: 'flex',
-    },
-    button: {
-        height: 'auto',
-        width: '100%',
-    },
+  row: {
+    display: 'flex',
+  },
+  actions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    padding: 10,
+  },
+  renderMigrationButtonContainer: {
+    flex: '1',
+  },
 };
 
 const validate = createValidator({
-    cardStatus: [required],
+  cardStatus: [required],
 });
 
-class CardInformation extends React.PureComponent { // eslint-disable-line react/prefer-stateless-function
-    constructor(props) {
-        super(props);
-        this.handleEditableState = this.handleEditableState.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.onDialogCancel = this.onDialogCancel.bind(this);
-        this.onCardReissueDialogCancel = this.onCardReissueDialogCancel.bind(this);
-        this.handleCardReissueClick = this.handleCardReissueClick.bind(this);
-        this.state = {
-            disabled: true,
-            open: false,
-            isReissueDialogVisable: false,
-        };
-    }
+export const ACTION_UPDATE = 1;
+export const ACTION_REISSUE = 2;
+export const ACTION_DELETE = 3;
 
-    componentDidMount() {
-        const { cardInfo } = this.props;
-        this.handleInitialization(cardInfo);
-    }
+class CardInformation extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleEditableState = this.handleEditableState.bind(this);
+    this.handleAction = this.handleAction.bind(this);
+    this.handleActionCancel = this.handleActionCancel.bind(this);
+    this.handleActionSubmit = this.handleActionSubmit.bind(this);
+    this.state = {
+      disabled: true,
+      isDialogConfirmVisible: false,
+    };
+  }
 
-    handleInitialization(cardInfo) {
-        this.props.initialize({
-            cardId: cardInfo.cardId,
-            spendingLimitControl: cardInfo.spendingLimit.active ? 'On' : 'Off',
-            spendingLimit: toMoney(cardInfo.spendingLimit.amount),
-            timePeriod: cardInfo.spendingLimit.period,
-            availableSpend: toMoney(cardInfo.availableAmount),
-            cardStatus: cardInfo.status,
-            availableUntil: 'n/a',
-            activeDays: daysToShortName(cardInfo.allowedDays),
-            lifeCycleStatus: cardInfo.lifecycleStatus,
-            allowedCategories: map(cardInfo.allowedCategories, 'name').join(','),
-            cardCreated: toCardCreatedDate(cardInfo.createdOn),
-            cardLastFour: cardInfo.lastFour,
-            cardType: cardInfo.type,
-            referenceId: cardInfo.externalReferenceId,
-        });
-    }
+  componentDidMount() {
+    const { cardInfo } = this.props;
+    this.handleInitialization(cardInfo);
+  }
 
-    handleEditableState() {
-        this.setState({ disabled: !this.state.disabled });
-    }
+  handleInitialization(cardInfo) {
+    this.props.initialize({
+      cardId: cardInfo.cardId,
+      spendingLimitControl: cardInfo.spendingLimit.active ? 'On' : 'Off',
+      spendingLimit: toMoney(cardInfo.spendingLimit.amount),
+      timePeriod: cardInfo.spendingLimit.period,
+      availableSpend: toMoney(cardInfo.availableAmount),
+      cardStatus: cardInfo.status,
+      availableUntil: 'n/a',
+      activeDays: daysToShortName(cardInfo.allowedDays),
+      lifeCycleStatus: cardInfo.lifecycleStatus,
+      allowedCategories: map(cardInfo.allowedCategories, 'name').join(','),
+      cardCreated: toCardCreatedDate(cardInfo.createdOn),
+      cardLastFour: cardInfo.lastFour,
+      cardType: cardInfo.type,
+      referenceId: cardInfo.externalReferenceId,
+    });
+  }
 
-    renderActionButtons() {
-        return (
-            <ActionButtons
-                handleEditableState={this.handleEditableState}
-                disabled={this.state.disabled}
-            />
-        );
-    }
+  handleEditableState() {
+    this.setState({ disabled: !this.state.disabled });
+  }
 
-    onDialogCancel() {
-        this.setState({
-            open: false,
-        });
+  handleAction(action) {
+    if (action === ACTION_UPDATE) {
+      this.handleEditableState();
     }
+    this.setState({
+      action,
+      isDialogConfirmVisible: true,
+    });
+  }
 
-    renderConfirmDialog() {
-        const { update, formValues } = this.props;
-        return (
-            <DialogConfirm
-                visible={this.state.open}
-                onCancel={this.onDialogCancel}
-                onSubmit={update}
-                data={formValues}
-            />
-        );
-    }
+  handleActionCancel() {
+    this.setState({
+      isDialogConfirmVisible: false,
+    });
+  }
 
-    renderCardReissueDialog() {
-        const { handleCardReissue, formValues } = this.props;
-        return (
-            <DialogConfirm
-                visible={this.state.isReissueDialogVisable}
-                onCancel={this.onCardReissueDialogCancel}
-                onSubmit={handleCardReissue}
-                data={formValues}
-            />
-        );
-    }
+  handleActionSubmit() {
+    const { onAction, formValues } = this.props;
+    const { action } = this.state;
+    onAction(action, formValues);
+  }
 
-    onCardReissueDialogCancel() {
-        this.setState({
-            isReissueDialogVisable: false,
-        });
-    }
-
-    handleSubmit() {
-        this.handleEditableState();
-        this.setState({
-            open: true,
-        });
-    }
-
-    handleCardReissueClick() {
-        this.setState({
-            isReissueDialogVisable: true,
-        });
-    }
-
-    render() {
-        const { handleSubmit } = this.props;
-        return (
-            <div>
-                <form onSubmit={handleSubmit(this.handleSubmit)}>
-                    <AppBar
-                        title="Card Information"
-                        showMenuIconButton={false}
-                        iconElementRight={this.renderActionButtons()}
-                    />
-                    <Card>
-                        <div style={styles.row}>
-                            {this.renderSpendLimitControl()}
-                            {this.renderSpendLimit()}
-                        </div>
-                        <div style={styles.row}>
-                            {this.renderTimePeriod()}
-                            {this.renderAvailableSpend()}
-                        </div>
-                        <div style={styles.row}>
-                            {this.renderCardStatus()}
-                            {this.renderAvailableUntil()}
-                        </div>
-                        <div style={styles.row}>
-                            {this.renderLifeCycleStatus()}
-                            {this.renderCreatedCardLastFour()}
-                        </div>
-                        <div style={styles.row}>
-                            {this.renderCreatedCardDate()}
-                            {this.renderCardType()}
-                        </div>
-                        <div style={styles.row}>
-                            {this.renderActiveDays()}
-                            {this.renderReferenceId()}
-                        </div>
-                        <div style={styles.row}>
-                            {this.renderAllowedCategories()}
-                        </div>
-                        <div style={styles.row}>
-                            {this.renderReissueButton()}
-                        </div>
-                    </Card>
-                    {this.renderConfirmDialog()}
-                    {this.renderCardReissueDialog()}
-                </form>
+  render() {
+    const { handleSubmit } = this.props;
+    return (
+      <div>
+        <form onSubmit={handleSubmit(() => this.handleAction(ACTION_UPDATE))}>
+          <AppBar title="Card Information" showMenuIconButton={false} iconElementRight={this.renderActionButtons()} />
+          <Card>
+            <div style={styles.row}>
+              {this.renderSpendLimitControl()}
+              {this.renderSpendLimit()}
             </div>
-        );
-    }
+            <div style={styles.row}>
+              {this.renderTimePeriod()}
+              {this.renderAvailableSpend()}
+            </div>
+            <div style={styles.row}>
+              {this.renderCardStatus()}
+              {this.renderAvailableUntil()}
+            </div>
+            <div style={styles.row}>
+              {this.renderLifeCycleStatus()}
+              {this.renderCreatedCardLastFour()}
+            </div>
+            <div style={styles.row}>
+              {this.renderCreatedCardDate()}
+              {this.renderCardType()}
+            </div>
+            <div style={styles.row}>
+              {this.renderActiveDays()}
+              {this.renderReferenceId()}
+            </div>
+            <div style={styles.row}>{this.renderAllowedCategories()}</div>
+            {this.renderActions()}
+          </Card>
+          {this.renderConfirmDialog()}
+        </form>
+      </div>
+    );
+  }
 
-    renderSpendLimitControl() {
-        return (
-            <Field
-                name="spendingLimitControl"
-                label="Spend limit control"
-                component={FormTextField}
-                disabled
-            />
-        );
-    }
+  renderActionButtons() {
+    return <ActionButtons handleEditableState={this.handleEditableState} disabled={this.state.disabled} />;
+  }
 
-    renderSpendLimit() {
-        return (
-            <Field
-                name="spendingLimit"
-                label="Spend limit"
-                component={FormTextField}
-                disabled
-            />
-        );
-    }
+  renderSpendLimitControl() {
+    return <Field name="spendingLimitControl" label="Spend limit control" component={FormTextField} disabled />;
+  }
 
-    renderTimePeriod() {
-        return (
-            <Field
-                name="timePeriod"
-                label="Time Period"
-                component={FormTextField}
-                disabled
-            />
-        );
-    }
+  renderSpendLimit() {
+    return <Field name="spendingLimit" label="Spend limit" component={FormTextField} disabled />;
+  }
 
-    renderAvailableSpend() {
-        return (
-            <Field
-                name="availableSpend"
-                label="Available spend"
-                component={FormTextField}
-                disabled
-            />
-        );
-    }
+  renderTimePeriod() {
+    return <Field name="timePeriod" label="Time Period" component={FormTextField} disabled />;
+  }
 
-    renderCardStatus() {
-        return (
-            <Field
-                name="cardStatus"
-                label="Card status"
-                options={CARD_STATUS}
-                component={FormSelectField}
-                disabled={this.state.disabled}
-            />
-        );
-    }
+  renderAvailableSpend() {
+    return <Field name="availableSpend" label="Available spend" component={FormTextField} disabled />;
+  }
 
-    renderAvailableUntil() {
-        return (
-            <Field
-                name="availableUntil"
-                label="Available until"
-                component={FormTextField}
-                disabled
-            />
-        );
-    }
+  renderCardStatus() {
+    return (
+      <Field
+        name="cardStatus"
+        label="Card status"
+        options={CARD_STATUS}
+        component={FormSelectField}
+        disabled={this.state.disabled}
+      />
+    );
+  }
 
-    renderActiveDays() {
-        return (
-            <Field
-                name="activeDays"
-                label="Days active"
-                component={FormTextField}
-                multiLine
-                disabled
-            />
-        );
-    }
+  renderAvailableUntil() {
+    return <Field name="availableUntil" label="Available until" component={FormTextField} disabled />;
+  }
 
-    renderReferenceId() {
-        return (
-            <Field
-                name="referenceId"
-                label="Reference ID"
-                component={FormTextField}
-                disabled
-            />
-        );
-    }
+  renderActiveDays() {
+    return <Field name="activeDays" label="Days active" component={FormTextField} multiLine disabled />;
+  }
 
-    renderLifeCycleStatus() {
-        return (
-            <Field
-                name="lifeCycleStatus"
-                label="Lifecycle status"
-                component={FormTextField}
-                disabled
-            />
-        );
-    }
+  renderReferenceId() {
+    return <Field name="referenceId" label="Reference ID" component={FormTextField} disabled />;
+  }
 
-    renderAllowedCategories() {
-        return (
-            <Field
-                name="allowedCategories"
-                label="Allowed categories"
-                component={FormTextField}
-                multiLine
-                disabled
-            />
-        );
-    }
+  renderLifeCycleStatus() {
+    return <Field name="lifeCycleStatus" label="Lifecycle status" component={FormTextField} disabled />;
+  }
 
-    renderCreatedCardDate() {
-        return (
-            <Field
-                name="cardCreated"
-                label="Card created"
-                component={FormTextField}
-                disabled
-            />
-        );
-    }
+  renderAllowedCategories() {
+    return <Field name="allowedCategories" label="Allowed categories" component={FormTextField} multiLine disabled />;
+  }
 
-    renderCreatedCardLastFour() {
-        return (
-            <Field
-                name="cardLastFour"
-                label="Card last 4"
-                component={FormTextField}
-                disabled
-            />
-        );
-    }
+  renderCreatedCardDate() {
+    return <Field name="cardCreated" label="Card created" component={FormTextField} disabled />;
+  }
 
-    renderCardType() {
-        return (
-            <Field
-                name="cardType"
-                label="Card type"
-                component={FormTextField}
-                disabled
-            />
-        );
-    }
+  renderCreatedCardLastFour() {
+    return <Field name="cardLastFour" label="Card last 4" component={FormTextField} disabled />;
+  }
 
-    renderReissueButton() {
-        const { cardInfo: { status } } = this.props;
-        if (status === 'CANCELED') {
-            return;
-        }
-        return (
-            <FlatButton
-                label="Reissue"
-                style={styles.button}
-                onClick={this.handleCardReissueClick}
-            />
-        );
+  renderCardType() {
+    return <Field name="cardType" label="Card type" component={FormTextField} disabled />;
+  }
+
+  renderActions = () => (
+    <div style={styles.actions}>
+      <div style={styles.renderMigrationButtonContainer}>{this.renderMigrationLink()}</div>
+      {this.renderActionReissue()}
+      {this.renderActionDelete()}
+    </div>
+  );
+
+  renderActionReissue() {
+    const { cardInfo: { status } } = this.props;
+    if (status === 'CANCELED') {
+      return;
     }
+    return <FlatButton label="Reissue" onClick={() => this.handleAction(ACTION_REISSUE)} />;
+  }
+
+  renderActionDelete() {
+    return (
+      <FlatButton
+        label="Terminate"
+        labelStyle={{ color: '#F44336' }}
+        onClick={() => this.handleAction(ACTION_DELETE)}
+      />
+    );
+  }
+
+  renderConfirmDialog() {
+    const { formValues } = this.props;
+    return (
+      <DialogConfirm
+        visible={this.state.isDialogConfirmVisible}
+        onCancel={this.handleActionCancel}
+        onSubmit={this.handleActionSubmit}
+        data={formValues}
+      />
+    );
+  }
+
+  goToAssociatedCard = (associatedCardId) => {
+    if (associatedCardId) {
+      this.context.router.push(`/card/${associatedCardId}`);
+    }
+    window.location.reload();
+  };
+
+  renderMigrationLink = () => {
+    const { cardInfo, cardMigration } = this.props;
+    if (isEmpty(cardMigration)) {
+      return null;
+    }
+    let associatedCardId = null;
+    if (cardInfo.cardId === cardMigration.newCard.cardId) {
+      associatedCardId = cardMigration.oldCard.cardId;
+    } else {
+      associatedCardId = cardMigration.newCard.cardId;
+    }
+    return (
+      <FlatButton
+        onClick={() => this.goToAssociatedCard(associatedCardId)}
+        label="Link to Migrated Card"
+        style={styles.button}
+      />
+    );
+  };
 }
 
 CardInformation.propTypes = {
-    cardInfo: PropTypes.oneOfType([
-        PropTypes.array,
-        PropTypes.object,
-    ]),
-    initialize: PropTypes.func,
-    update: PropTypes.func.isRequired,
-    formValues: PropTypes.object,
-    handleSubmit: PropTypes.func,
-    handleCardReissue: PropTypes.func,
+  cardInfo: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
+  cardMigration: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]),
+  handleSubmit: PropTypes.func.isRequired,
+  initialize: PropTypes.func.isRequired,
+  formValues: PropTypes.object,
+  onAction: PropTypes.func.isRequired,
+};
+
+CardInformation.contextTypes = {
+  router: PropTypes.object,
 };
 
 const mapStateToProps = createStructuredSelector({
-    formValues: makeSelectFormFields('CardInformation'),
+  formValues: makeSelectFormFields('CardInformation'),
 });
 
-export default connect(mapStateToProps)(reduxForm({
+export default connect(mapStateToProps)(
+  reduxForm({
     form: 'CardInformation',
     validate,
-})(CardInformation));
+  })(CardInformation)
+);

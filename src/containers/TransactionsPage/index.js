@@ -2,19 +2,23 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
+import { compose } from 'redux';
 import { reduxForm } from 'redux-form/immutable';
 import Paper from 'material-ui/Paper';
 import { Card, CardText } from 'material-ui/Card';
-import Pagination from 'materialui-pagination';
+import TablePagination from '@material-ui/core/TablePagination';
 
+import injectReducer from 'utils/injectReducer';
+import injectSaga from 'utils/injectSaga';
 import { ContentWrapper } from 'containers/App/index';
 import EnhancedTable from 'components/EnhancedTable';
 import TableRowTransactionDetails from 'components/TableRowTransactionDetails';
 import { loadTransactions, loadTransactionHistory } from './actions';
 import { makeSelectLoading, makeSelectTransactions, makeSelectPage } from './selectors';
 import TransactionsFilters from './TransactionsFilters';
-
 import { DEFAULT_PAGE_SIZE } from './constants';
+import reducer from './reducer';
+import saga from './saga';
 
 const columnData = [
   { id: 'date', label: 'Date' },
@@ -49,9 +53,9 @@ class TransactionsPage extends React.PureComponent {
     dispatchLoadTransactionHistory(item.transactionId);
   }
 
-  onPageChange(value) {
+  onPageChange(page) {
     const { dispatchLoadTransactions } = this.props;
-    dispatchLoadTransactions(value.page);
+    dispatchLoadTransactions(page);
   }
 
   render() {
@@ -99,12 +103,19 @@ class TransactionsPage extends React.PureComponent {
     const { page } = this.props;
     return (
       <Card>
-        <Pagination
-          total={transactions.count}
-          rowsPerPage={[DEFAULT_PAGE_SIZE]}
-          page={page}
-          numberOfRows={DEFAULT_PAGE_SIZE}
-          updateRows={this.onPageChange}
+        <TablePagination
+          component="div"
+          count={transactions.count}
+          rowsPerPage={DEFAULT_PAGE_SIZE}
+          rowsPerPageOptions={[DEFAULT_PAGE_SIZE]}
+          page={page - 1}
+          backIconButtonProps={{
+            'aria-label': 'Previous Page',
+          }}
+          nextIconButtonProps={{
+            'aria-label': 'Next Page',
+          }}
+          onChangePage={(event, page) => this.onPageChange(page + 1)}
         />
       </Card>
     );
@@ -140,11 +151,21 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(
+const withConnect = connect(
   mapStateToProps,
-  mapDispatchToProps
-)(
-  reduxForm({
-    form: 'TransactionsPage',
-  })(TransactionsPage)
+  mapDispatchToProps,
 );
+
+const withForm = reduxForm({
+  form: 'TransactionsPageForm',
+});
+
+const withReducer = injectReducer({ key: 'transactionsPage', reducer });
+const withSaga = injectSaga({ key: 'transactionsPage', saga });
+
+export default compose(
+  withReducer,
+  withSaga,
+  withConnect,
+  withForm,
+)(TransactionsPage);

@@ -56,7 +56,7 @@ export class CardDetailsPage extends React.PureComponent {
   }
 
   componentWillMount() {
-    const { dispatchLoadCardDetails, routeParams: { id } } = this.props;
+    const { dispatchLoadCardDetails, match: { params: { id } } } = this.props;
     dispatchLoadCardDetails(id);
   }
 
@@ -142,7 +142,6 @@ CardDetailsPage.propTypes = {
   cardDetails: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]),
   transactions: PropTypes.oneOfType([PropTypes.bool, PropTypes.array]),
   cardMigration: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]),
-  routeParams: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
   dispatchLoadCardDetails: PropTypes.func.isRequired,
   dispatchUpdateUserInfo: PropTypes.func.isRequired,
   dispatchUpdateCardInformation: PropTypes.func.isRequired,

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
+import { compose } from 'redux';
 import { reduxForm } from 'redux-form/immutable';
 import { createStructuredSelector } from 'reselect';
 import { Grid, Row, Col } from 'react-flexbox-grid';
@@ -10,6 +11,8 @@ import Paper from 'material-ui/Paper';
 import FlatButton from 'material-ui/FlatButton';
 import isEmpty from 'lodash/isEmpty';
 
+import injectReducer from 'utils/injectReducer';
+import injectSaga from 'utils/injectSaga';
 import { ContentWrapper } from 'containers/App/index';
 import CircularProgressCentered from 'components/CircularProgressCentered';
 import UserInformation from 'components/UserInformation';
@@ -25,6 +28,24 @@ import BusinessMigrationInformation from 'components/MigrationInformation';
 
 import { updateUserInfo } from 'containers/UserInfo/actions';
 import { makeSelectLoadingUserInfo, makeSelectUserInfo } from 'containers/UserInfo/selectors';
+import reducer from 'containers/UserPage/reducer';
+import reducerUserInfo from 'containers/UserInfo/reducer';
+import reducerBusinessInfo from 'containers/UserPage/BusinessInfo/reducer';
+import reducerBankingSubscriptionPlan from 'containers/UserPage/BankingSubscriptionPlan/reducer';
+import reducerCardShippingAddressSuccess from 'containers/UserPage/CardShippingAddress/reducer';
+import reducerInitiateCreditDebitReducer from 'containers/UserPage/InitiateCreditDebit/reducer';
+import reducerBusinessNotes from 'containers/UserPage/BusinessNotes/reducer';
+import reducerBusinessClassification from 'containers/UserPage/BusinessClassification/reducer';
+import reducerBusinessMigrationInfo from 'containers/UserPage/MigrationInfo/reducer';
+import saga from 'containers/UserPage/saga';
+import sagaUserInfo from 'containers/UserInfo/saga';
+import sagaBusinessInfo from 'containers/UserPage/BusinessInfo/saga';
+import sagaBankingSubscriptionPlan from 'containers/UserPage/BankingSubscriptionPlan/saga';
+import sagaCardShippingAddressSuccess from 'containers/UserPage/CardShippingAddress/saga';
+import sagaInitiateCreditDebitReducer from 'containers/UserPage/InitiateCreditDebit/saga';
+import sagaBusinessNotes from 'containers/UserPage/BusinessNotes/saga';
+import sagaBusinessClassification from 'containers/UserPage/BusinessClassification/saga';
+import sagaBusinessMigrationInfo from 'containers/UserPage/MigrationInfo/saga';
 
 import { loadUser, loadUserCards, loadCardHistory } from './actions';
 import { getBusinessClassification, updateBusinessClassification } from './BusinessClassification/actions';
@@ -73,17 +94,17 @@ export class UserPage extends React.Component {
       dispatchLoadUserCard,
       dispatchGetBusinessClassification,
       dispatchGetBusinessMigrationInfo,
-      routeParams,
+      match: { params }
     } = this.props;
-    dispatchLoadUser(routeParams);
-    dispatchLoadUserCard(routeParams, 1);
-    dispatchGetBusinessClassification(routeParams);
-    dispatchGetBusinessMigrationInfo(routeParams);
+    dispatchLoadUser(params);
+    dispatchLoadUserCard(params, 1);
+    dispatchGetBusinessClassification(params);
+    dispatchGetBusinessMigrationInfo(params);
   }
 
   onCardsPageChange = (value) => {
-    const { dispatchLoadUserCard, routeParams } = this.props;
-    dispatchLoadUserCard(routeParams, value.page);
+    const { dispatchLoadUserCard, match: { params } } = this.props;
+    dispatchLoadUserCard(params, value.page);
   };
 
   onCardSelected = (value) => {
@@ -257,7 +278,6 @@ UserPage.propTypes = {
   dispatchGetBusinessClassification: PropTypes.func.isRequired,
   dispatchUpdateBusinessClassification: PropTypes.func.isRequired,
   dispatchGetBusinessMigrationInfo: PropTypes.func.isRequired,
-  routeParams: PropTypes.oneOfType([PropTypes.array, PropTypes.bool, PropTypes.object]),
   user: PropTypes.oneOfType([PropTypes.array, PropTypes.bool, PropTypes.object]),
   userCards: PropTypes.oneOfType([PropTypes.array, PropTypes.bool, PropTypes.object]),
   loading: PropTypes.bool,
@@ -346,8 +366,56 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(
-  reduxForm({
-    form: 'UserPageForm',
-  })(withRouter(UserPage))
+const withConnect = connect(
+  mapStateToProps,
+  mapDispatchToProps,
 );
+
+const withForm = reduxForm({
+  form: 'UserPageForm',
+});
+
+// TODO skip modules with no index
+const withReducer = injectReducer({ key: 'userPageDetail', reducer });
+const withReducerUserInfo = injectReducer({ key: 'userInfo', reducer: reducerUserInfo });
+const withReducerBusinessInfo = injectReducer({ key: 'businessInfo', reducer: reducerBusinessInfo });
+const withReducerBankingSubscriptionPlan = injectReducer({ key: 'bankingSubscriptionPlan', reducer: reducerBankingSubscriptionPlan });
+const withReducerCardShippingAddressSuccess = injectReducer({ key: 'cardShippingAddressSuccess', reducer: reducerCardShippingAddressSuccess });
+const withReducerInitiateCreditDebitReducer = injectReducer({ key: 'initiateCreditDebitReducer', reducer: reducerInitiateCreditDebitReducer });
+const withReducerBusinessNotes = injectReducer({ key: 'businessNotes', reducer: reducerBusinessNotes });
+const withReducerBusinessClassification = injectReducer({ key: 'businessClassification', reducer: reducerBusinessClassification });
+const withReducerBusinessMigrationInfo = injectReducer({ key: 'businessMigrationInfo', reducer: reducerBusinessMigrationInfo });
+
+const withSaga = injectSaga({ key: 'userPageDetail', saga });
+const withSagaUserInfo = injectSaga({ key: 'userInfo', saga: sagaUserInfo });
+const withSagaBusinessInfo = injectSaga({ key: 'businessInfo', saga: sagaBusinessInfo });
+const withSagaBankingSubscriptionPlan = injectSaga({ key: 'bankingSubscriptionPlan', saga: sagaBankingSubscriptionPlan });
+const withSagaCardShippingAddressSuccess = injectSaga({ key: 'cardShippingAddressSuccess', saga: sagaCardShippingAddressSuccess });
+const withSagaInitiateCreditDebitReducer = injectSaga({ key: 'initiateCreditDebitReducer', saga: sagaInitiateCreditDebitReducer });
+const withSagaBusinessNotes = injectSaga({ key: 'businessNotes', saga: sagaBusinessNotes });
+const withSagaBusinessClassification = injectSaga({ key: 'businessClassification', saga: sagaBusinessClassification });
+const withSagaBusinessMigrationInfo = injectSaga({ key: 'businessMigrationInfo', saga: sagaBusinessMigrationInfo });
+
+export default compose(
+  withReducer,
+  withReducerUserInfo,
+  withReducerBusinessInfo,
+  withReducerBankingSubscriptionPlan,
+  withReducerCardShippingAddressSuccess,
+  withReducerInitiateCreditDebitReducer,
+  withReducerBusinessNotes,
+  withReducerBusinessClassification,
+  withReducerBusinessMigrationInfo,
+  withSaga,
+  withSagaUserInfo,
+  withSagaBusinessInfo,
+  withSagaBankingSubscriptionPlan,
+  withSagaCardShippingAddressSuccess,
+  withSagaInitiateCreditDebitReducer,
+  withSagaBusinessNotes,
+  withSagaBusinessClassification,
+  withSagaBusinessMigrationInfo,
+  withForm,
+  withConnect,
+  withRouter,
+)(UserPage);
