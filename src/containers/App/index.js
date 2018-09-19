@@ -25,6 +25,8 @@ import UserPage from 'containers/UserPage';
 import EnrollmentsPage from 'containers/EnrollmentsPage';
 import EnrollmentPage from 'containers/EnrollmentPage';
 import TransactionsPage from 'containers/TransactionsPage';
+import LoadsPage from 'containers/LoadsPage';
+import CardDetailsPage from 'containers/CardDetailsPage';
 import NotFoundPage from 'containers/NotFoundPage';
 import storage from 'utils/storage';
 
@@ -74,6 +76,8 @@ class App extends React.Component {
             <Route path="/enrollments" component={EnrollmentsPage} />
             <Route path="/enrollment/:id" component={EnrollmentPage} />
             <Route path="/transactions" component={TransactionsPage} />
+            <Route path="/loads" component={LoadsPage} />
+            <Route path="/card/:id" component={CardDetailsPage} />
             <Route component={NotFoundPage} />
           </Switch>
           {this.renderLoading()}

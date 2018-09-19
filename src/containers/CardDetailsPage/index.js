@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { compose } from 'redux';
 import { reduxForm } from 'redux-form/immutable';
 import { Grid, Row, Col } from 'react-flexbox-grid';
 import { createStructuredSelector } from 'reselect';
@@ -8,6 +9,10 @@ import Paper from 'material-ui/Paper';
 import { Card, CardText } from 'material-ui/Card';
 import isEmpty from 'lodash/isEmpty';
 
+import injectReducer from 'utils/injectReducer';
+import injectSaga from 'utils/injectSaga';
+import reducerUserInfo from 'containers/UserInfo/reducer';
+import sagaUserInfo from 'containers/UserInfo/saga';
 import { ContentWrapper } from 'containers/App/index';
 import CircularProgressCentered from 'components/CircularProgressCentered';
 import CardInformation, { ACTION_UPDATE, ACTION_REISSUE, ACTION_DELETE } from 'components/CardInformation';
@@ -23,6 +28,8 @@ import {
   makeSelectTransactions,
   makeSelectCardMigration,
 } from './selectors';
+import reducer from './reducer';
+import saga from './saga';
 
 const styles = {
   gridContainer: {
@@ -185,8 +192,25 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(
-  reduxForm({
-    form: 'CardDetailsPage',
-  })(CardDetailsPage)
+const withConnect = connect(
+  mapStateToProps,
+  mapDispatchToProps,
 );
+
+const withForm = reduxForm({
+  form: 'CardDetailsPageForm',
+});
+
+const withReducer = injectReducer({ key: 'cardDetailsPage', reducer });
+const withReducerUserInfo = injectReducer({ key: 'userInfo', reducer: reducerUserInfo });
+const withSaga = injectSaga({ key: 'cardDetailsPage', saga });
+const withSagaUserInfo = injectSaga({ key: 'userInfo', saga: sagaUserInfo });
+
+export default compose(
+  withReducer,
+  withReducerUserInfo,
+  withSaga,
+  withSagaUserInfo,
+  withConnect,
+  withForm,
+)(CardDetailsPage);

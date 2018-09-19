@@ -101,6 +101,7 @@ class TransactionsPage extends React.PureComponent {
       return;
     }
     const { page } = this.props;
+    // TODO move pagination to table component
     return (
       <Card>
         <TablePagination

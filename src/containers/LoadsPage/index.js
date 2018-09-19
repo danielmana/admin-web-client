@@ -2,11 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
+import { compose } from 'redux';
 import { reduxForm, Field } from 'redux-form/immutable';
 import Paper from 'material-ui/Paper';
 import { GridList } from 'material-ui/GridList';
 import { Card, CardText } from 'material-ui/Card';
 
+import injectReducer from 'utils/injectReducer';
+import injectSaga from 'utils/injectSaga';
 import { ContentWrapper } from 'containers/App/index';
 import Filters from 'components/Filters';
 import FormTextField from 'components/Form/FormTextField';
@@ -17,8 +20,9 @@ import Pagination from 'components/Pagination';
 import PageField from 'components/PageField';
 import { loadLoads } from './actions';
 import { makeSelectLoading, makeSelectLoads, makeSelectFilters } from './selectors';
-
 import { DEFAULT_PAGE_SIZE, TRANSACTION_STATUS, LOAD_TYPE } from './constants';
+import reducer from './reducer';
+import saga from './saga';
 
 const columnData = [
   { id: 'dateInitiated', label: 'Date initiated' },
@@ -209,11 +213,21 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(
+const withConnect = connect(
   mapStateToProps,
-  mapDispatchToProps
-)(
-  reduxForm({
-    form: 'LoadsPage',
-  })(LoadsPage)
+  mapDispatchToProps,
 );
+
+const withForm = reduxForm({
+  form: 'LoadsPageForm',
+});
+
+const withReducer = injectReducer({ key: 'loadsPage', reducer });
+const withSaga = injectSaga({ key: 'loadsPage', saga });
+
+export default compose(
+  withReducer,
+  withSaga,
+  withConnect,
+  withForm,
+)(LoadsPage);
