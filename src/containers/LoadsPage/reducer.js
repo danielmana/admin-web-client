@@ -6,7 +6,7 @@ const initialState = fromJS({
   loading: false,
   loads: false,
   error: false,
-  filters: {},
+  filters: false,
 });
 
 function loadsPageReducer(state = initialState, action) {

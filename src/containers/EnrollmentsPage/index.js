@@ -4,12 +4,10 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { compose } from 'redux';
 import { withRouter } from 'react-router-dom';
-import { fromJS } from 'immutable';
 import { reduxForm, Field } from 'redux-form/immutable';
 import Paper from 'material-ui/Paper';
 import { GridList } from 'material-ui/GridList';
 import { Card, CardText } from 'material-ui/Card';
-import isEmpty from 'lodash/isEmpty';
 
 import injectReducer from 'utils/injectReducer';
 import injectSaga from 'utils/injectSaga';
@@ -90,13 +88,8 @@ export class EnrollmentsPage extends React.PureComponent {
     const {
       dispatchLoadEnrollments,
       filters,
-      location: { query },
     } = this.props;
-    if (isEmpty(query)) {
-      dispatchLoadEnrollments(filters);
-    } else {
-      dispatchLoadEnrollments(fromJS(query));
-    }
+    dispatchLoadEnrollments(filters);
   }
 
   onFiltersSubmit(values) {

@@ -48,17 +48,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject",
-    "lint": "yarn lint:js",
-    "lint:eslint": "eslint --ignore-path .gitignore",
-    "lint:fix": "eslint src --ignore-path .gitignore --fix",
-    "lint:js": "yarn lint:eslint -- . ",
-    "lint:staged": "lint-staged"
+    "eject": "react-scripts eject"
   },
-  "lint-staged": {
-    "*.js": "lint:eslint"
-  },
-  "pre-commit": "lint:staged",
   "prettier": {
     "printWidth": 120,
     "trailingComma": "es5",

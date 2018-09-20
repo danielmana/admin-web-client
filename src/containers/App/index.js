@@ -49,7 +49,7 @@ class App extends React.Component {
 
   componentWillMount() {
     const { history, location: { pathname } } = this.props;
-    if (!storage.getUser()) {
+    if (!storage.getUser() && pathname !== '/login') {
       history.push('/login');
     } else if (pathname === '/') {
       history.push('/users');

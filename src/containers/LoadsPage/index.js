@@ -7,6 +7,7 @@ import { reduxForm, Field } from 'redux-form/immutable';
 import Paper from 'material-ui/Paper';
 import { GridList } from 'material-ui/GridList';
 import { Card, CardText } from 'material-ui/Card';
+import queryString from 'query-string';
 
 import injectReducer from 'utils/injectReducer';
 import injectSaga from 'utils/injectSaga';
@@ -83,10 +84,11 @@ export class LoadsPage extends React.PureComponent {
     const {
       dispatchLoadLoads,
       filters,
-      location: { query, search },
+      location: { search },
     } = this.props;
-    if (query.businessId) {
-      dispatchLoadLoads(search);
+    const parsed = queryString.parse(search);
+    if (parsed.businessId) {
+      dispatchLoadLoads(parsed);
     } else {
       dispatchLoadLoads(filters);
     }
